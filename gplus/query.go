@@ -250,6 +250,31 @@ func (q *QueryCond[T]) OrderByAsc(columns ...any) *QueryCond[T] {
 	return q
 }
 
+// OrderByOne 排序 orderBy[constants.Asc|constants.Desc]
+func (q *QueryCond[T]) OrderByOne(orderByConstants string, columns ...any) *QueryCond[T] {
+	if orderByConstants == "" {
+		orderByConstants = constants.Desc
+	}
+	if orderByConstants == constants.Desc {
+		return q.OrderByDesc(columns...)
+	}
+	return q.OrderByAsc(columns...)
+}
+
+// OrderByMany 多字段多条件排序
+func (q *QueryCond[T]) OrderByMany(orderCndArr []*OrderCondition) *QueryCond[T] {
+	if orderCndArr == nil || len(orderCndArr) == 0 {
+		return q
+	}
+	for _, v := range orderCndArr {
+		if len(v.Columns) == 0 {
+			continue
+		}
+		q.OrderByOne(v.Order, v.Columns)
+	}
+	return q
+}
+
 // Having HAVING SQl语句
 func (q *QueryCond[T]) Having(having string, args ...any) *QueryCond[T] {
 	q.havingBuilder.WriteString(having)
