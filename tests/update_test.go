@@ -113,6 +113,17 @@ func TestUpdate7Name(t *testing.T) {
 	gplus.Update(query, gplus.Db(sessionDb), gplus.Omit(&u.CreatedAt, &u.UpdatedAt))
 }
 
+func TestUpdate8Name(t *testing.T) {
+	var expectSql = "UPDATE `Users` SET `age`=age + 10,`phone`=phone,`score`=score + 10 WHERE username IS NULL"
+	sessionDb := checkUpdateSql(t, expectSql)
+	query, u := gplus.NewQuery[User]()
+	query.IsNull(&u.Username).
+		SetSqlExpEquityColumn(&u.Phone, &u.Phone).      //Set Phone=Phone
+		SetSqlExpr(&u.Score, "+", 10).                  //Set Score = Score + 10
+		SetSqlExprSecondColumn(&u.Age, &u.Age, "+", 10) //Set Age = Age + 10
+	gplus.Update(query, gplus.Db(sessionDb), gplus.Omit(&u.CreatedAt, &u.UpdatedAt))
+}
+
 func checkUpdateSql(t *testing.T, expect string) *gorm.DB {
 	expect = strings.TrimSpace(expect)
 	sessionDb := gormDb.Session(&gorm.Session{DryRun: true})

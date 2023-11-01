@@ -20,6 +20,7 @@ package gplus
 import (
 	"fmt"
 	"github.com/acmestack/gorm-plus/constants"
+	"gorm.io/gorm"
 	"reflect"
 	"strings"
 )
@@ -325,6 +326,46 @@ func (q *QueryCond[T]) Set(column any, val any) *QueryCond[T] {
 /*
 * 自定义条件
  */
+
+// SetSqlExpr 根据表达式设置更新的字段 operator 运算符(+,-,*等运算符)  针对数值类型的列操作
+func (q *QueryCond[T]) SetSqlExpr(column any, operator string, val any) *QueryCond[T] {
+	columnName := getColumnName(column)
+	if q.updateMap == nil {
+		q.updateMap = make(map[string]any)
+	}
+	q.updateMap[columnName] = gorm.Expr(fmt.Sprintf("%s %s %s", columnName, operator, "?"), val)
+	return q
+}
+
+// SetSqlExpEquityColumn 根据表达式设置更新的字段
+func (q *QueryCond[T]) SetSqlExpEquityColumn(column any, secondColumn any) *QueryCond[T] {
+	columnName := getColumnName(column)
+	if q.updateMap == nil {
+		q.updateMap = make(map[string]any)
+	}
+	secondColumnName := getColumnName(secondColumn)
+	q.updateMap[columnName] = gorm.Expr(secondColumnName)
+	return q
+}
+
+// SetSqlExprSecondColumn 根据表达式设置更新的字段 operator 运算符(+,-,*等运算符) 针对数值类型的列操作
+func (q *QueryCond[T]) SetSqlExprSecondColumn(column any, secondColumn any, operator string, val any) *QueryCond[T] {
+	columnName := getColumnName(column)
+	if q.updateMap == nil {
+		q.updateMap = make(map[string]any)
+	}
+	secondColumnName := getColumnName(secondColumn)
+	q.updateMap[columnName] = gorm.Expr(fmt.Sprintf("%s %s %s", secondColumnName, operator, "?"), val)
+	return q
+}
+
+// SetCond 设置更新的字段
+func (q *QueryCond[T]) SetCond(cond bool, column any, val any) *QueryCond[T] {
+	if cond {
+		return q.Set(column, val)
+	}
+	return q
+}
 
 // AndCond 拼接 AND
 func (q *QueryCond[T]) AndCond(cond bool, fn ...func(q *QueryCond[T])) *QueryCond[T] {

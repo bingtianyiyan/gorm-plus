@@ -248,9 +248,18 @@ func SelectCount[T any](q *QueryCond[T], opts ...OptionFunc) (int64, *gorm.DB) {
 	return count, resultDb
 }
 
+// SelectLimitCount 根据条件查询记录数量
+func SelectLimitCount[T any](q *QueryCond[T], limit int, opts ...OptionFunc) (int64, *gorm.DB) {
+	var count int64
+	resultDb := buildCondition(q, opts...)
+	resultDb.Statement.Selects = nil
+	resultDb.Limit(limit).Count(&count)
+	return count, resultDb
+}
+
 // Exists 根据条件判断记录是否存在
 func Exists[T any](q *QueryCond[T], opts ...OptionFunc) (bool, *gorm.DB) {
-	count, resultDb := SelectCount[T](q, opts...)
+	count, resultDb := SelectLimitCount[T](q, 1, opts...)
 	return count > 0, resultDb
 }
 
